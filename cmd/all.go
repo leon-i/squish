@@ -35,8 +35,11 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("all called")
-		if err := os.Mkdir("squished", 0755); err != nil {
-			panic(err)
+
+		if _, err := os.Stat("./squished"); os.IsNotExist(err) {
+			if err := os.Mkdir("squished", 0755); err != nil {
+				panic(err)
+			}
 		}
 
 		files, err := ioutil.ReadDir(".")
@@ -45,32 +48,42 @@ to quickly create a Cobra application.`,
 			fmt.Println(err)
 		}
 
-		for _, file := range files {
-			n := file.Name()
-			f, err := os.Open(n)
-			defer f.Close()
+		walkFiles(files)
 
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
-
-			t, err := util.GetFileContentType(f)
-
-			if err != nil {
-				fmt.Println(err)
-				continue
-			}
-
-			if t != "image/jpeg" {
-				fmt.Println(fmt.Sprintf("%s is not a jpg", n))
-				continue
-			}
-			
-			size := file.Size()
-			util.OptimizeImage(f, size)
-		}
+		util.Cleanup()
 	},
+}
+
+func walkFiles(files []os.FileInfo) {
+	for _, file := range files {
+		n := file.Name()
+
+		if (n == "squished") {
+			continue
+		}
+
+		f, err := os.Open(n)
+		defer f.Close()
+
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		t, err := util.GetFileContentType(f)
+
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+
+		if t != "image/jpeg" && t != "image/png" {
+			fmt.Println(fmt.Sprintf("%s is not a valid image", n))
+			continue
+		}
+		
+		util.OptimizeImage(f, t)
+	}
 }
 
 func init() {
