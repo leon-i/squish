@@ -26,44 +26,38 @@ import (
 // allCmd represents the all command
 var allCmd = &cobra.Command{
 	Use:   "all",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Compress all image files in current directory",
+	Long: "This command optimizes all .jpg and .png images in the current directory by converting them to mozilla jpeg.",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("all called")
+		fmt.Println("--------------------------------------------")
+		fmt.Println("squishing all images in current directory...")
+		fmt.Println("--------------------------------------------")
 
-		if _, err := os.Stat("./squished"); os.IsNotExist(err) {
-			if err := os.Mkdir("squished", 0755); err != nil {
-				panic(err)
-			}
+		q, _ := cmd.Flags().GetUint("quality")
+		if q == 0 || !util.IsValidQuality(q) {
+			q = 75
 		}
+
+		util.Startup()
 
 		files, err := ioutil.ReadDir(".")
+		util.Check(err)
 
-		if (err != nil ) {
-			fmt.Println(err)
-		}
-
-		walkFiles(files)
+		walkFiles(files, q)
 
 		util.Cleanup()
 	},
 }
 
-func walkFiles(files []os.FileInfo) {
+func walkFiles(files []os.FileInfo, quality uint) {
 	for _, file := range files {
 		n := file.Name()
 
-		if (n == "squished") {
+		if n == "squished" {
 			continue
 		}
 
 		f, err := os.Open(n)
-		defer f.Close()
 
 		if err != nil {
 			fmt.Println(err)
@@ -82,7 +76,7 @@ func walkFiles(files []os.FileInfo) {
 			continue
 		}
 		
-		util.OptimizeImage(f, t)
+		util.OptimizeImage(f, t, quality)
 	}
 }
 
@@ -97,5 +91,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	// allCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	allCmd.Flags().UintP("quality", "q", 75, "Set image quality - default 75")
 }

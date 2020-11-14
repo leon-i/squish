@@ -30,9 +30,9 @@ func GetFileContentType(file *os.File) (string, error) {
 	return contentType, nil
 }
 
-func OptimizeImage(file *os.File, imageType string) {
+func OptimizeImage(file *os.File, imageType string, quality uint) {
 	i, err := ioutil.ReadAll(file)
-	check(err)
+	Check(err)
 
 	resetFile(file)
 
@@ -42,41 +42,63 @@ func OptimizeImage(file *os.File, imageType string) {
 
 	if imageType == "image/jpeg" {
 		img, err = jpeg.Decode(in)
-		check(err)
+		Check(err)
 	} else {
 		img, err = png.Decode(in)
-		check(err)
+		Check(err)
 	}
 
-	file.Close()
+	err = file.Close()
+	Check(err)
 
 	out := new(bytes.Buffer)
 
 	err = mozjpegbin.Encode(out, img, &mozjpegbin.Options{
-		Quality: 75,
+		Quality: quality,
 		Optimize: true,
 	})
-	check(err)
+	Check(err)
 
 	path := fmt.Sprintf("squished/%s.jpg", Trim(file.Name()))
 
 	newFile, err := os.Create(path)
-	check(err)
+	Check(err)
 
 	saved := (in.Size() - int64(out.Len())) * 100 / in.Size()
-	io.Copy(newFile, out)
-	newFile.Close()
+
+	_, err = io.Copy(newFile, out)
+	Check(err)
+
+	err = newFile.Close()
+	Check(err)
 
 	fmt.Println(fmt.Sprintf("%s squished - file size reduced by %d%%", file.Name(), saved))
 }
 
+func Startup() {
+	if _, err := os.Stat("./squished"); os.IsNotExist(err) {
+		if err := os.Mkdir("squished", 0755); err != nil {
+			panic(err)
+		}
+	}
+}
+
 func Cleanup() {
 	squished, err := ioutil.ReadDir("./squished")
-	check(err)
+	Check(err)
 
 	if len(squished) == 0 {
-		os.RemoveAll("squished")
+		err = os.RemoveAll("squished")
+		Check(err)
 	}
+}
+
+func IsValidQuality(q uint) (valid bool) {
+	if q < 0 || q > 100 {
+		return false
+	}
+
+	return true
 }
 
 func Trim(fileName string) (trimmed string) {
@@ -90,7 +112,7 @@ func resetFile(file *os.File) {
 	}
 }
 
-func check(e error) {
+func Check(e error) {
 	if e != nil {
 		panic(e)
 	}
