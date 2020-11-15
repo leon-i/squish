@@ -108,8 +108,12 @@ func Trim(fileName string) (trimmed string) {
 
 func resetFile(file *os.File) {
 	if _, err := file.Seek(0, 0); err != nil {
-		fmt.Println(err)
+		panic(err)
 	}
+}
+
+func LogError(e error) {
+	fmt.Println("ERROR - " + e.Error())
 }
 
 func Check(e error) {

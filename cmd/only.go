@@ -17,21 +17,21 @@ package cmd
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"squish/util"
+
 	"github.com/spf13/cobra"
 )
 
-// allCmd represents the all command
-var allCmd = &cobra.Command{
-	Use:   "all",
-	Short: "Compress all image files in current directory",
-	Long: "This command optimizes all .jpg and .png images in the current directory by converting them to mozilla jpeg.",
+// onlyCmd represents the only command
+var onlyCmd = &cobra.Command{
+	Use:   "only",
+	Short: "optimize specific files by name in your current directory",
+	Long: `optimize specific files by name in the current directory - separate files by space and if the name of the file contains spaces, wrap in quotes. Ex. squish only "example file.jpg" `,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("--------------------------------------------")
-		fmt.Println("squishing all images in current directory...")
-		fmt.Println("--------------------------------------------")
+		fmt.Println("--------------------------------------------------")
+		fmt.Println("squishing desired image(s) in current directory...")
+		fmt.Println("--------------------------------------------------")
 
 		q, _ := cmd.Flags().GetUint("quality")
 		if q == 0 || !util.IsValidQuality(q) {
@@ -40,32 +40,18 @@ var allCmd = &cobra.Command{
 
 		util.Startup()
 
-		files, err := ioutil.ReadDir(".")
-		util.Check(err)
-
-		walkFiles(files, q)
+		walkArgs(args, q)
 
 		util.Cleanup()
 	},
 }
 
-func walkFiles(files []os.FileInfo, quality uint) {
-	for _, file := range files {
-		n := file.Name()
-
-		if n == "squished" {
-			continue
-		}
-
+func walkArgs(fileNames []string, quality uint) {
+	for _, n := range fileNames {
 		f, err := os.Open(n)
-
-		if err != nil {
-			util.LogError(err)
-			continue
-		}
+		util.Check(err)
 
 		t, err := util.GetFileContentType(f)
-
 		if err != nil {
 			util.LogError(err)
 			continue
@@ -75,21 +61,21 @@ func walkFiles(files []os.FileInfo, quality uint) {
 			fmt.Println(fmt.Sprintf("ERROR - %s is not a valid image", n))
 			continue
 		}
-		
+
 		util.OptimizeImage(f, t, quality)
 	}
 }
 
 func init() {
-	rootCmd.AddCommand(allCmd)
+	rootCmd.AddCommand(onlyCmd)
 
 	// Here you will define your flags and configuration settings.
 
 	// Cobra supports Persistent Flags which will work for this command
 	// and all subcommands, e.g.:
-	// allCmd.PersistentFlags().String("foo", "", "A help for foo")
+	// onlyCmd.PersistentFlags().String("foo", "", "A help for foo")
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	allCmd.Flags().UintP("quality", "q", 75, "Set output image quality")
+	onlyCmd.Flags().UintP("quality", "q", 75, "Set output image quality")
 }
