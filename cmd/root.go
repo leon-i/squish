@@ -17,11 +17,10 @@ package cmd
 
 import (
 	"fmt"
-	"github.com/spf13/cobra"
-	"os"
-
 	homedir "github.com/mitchellh/go-homedir"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"os"
 )
 
 var cfgFile string
@@ -29,16 +28,25 @@ var cfgFile string
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "squish",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "CLI image optimizer written in Go",
+	Long: "Squish optimizes image files via CLI by converting them to mozjpeg",
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
-	//	Run: func(cmd *cobra.Command, args []string) { },
+	Run: func(cmd *cobra.Command, args []string) {
+		welcome()
+	},
+}
+
+func welcome() {
+	fmt.Println("------------------")
+	fmt.Println("Welcome to squish!")
+	fmt.Println("------------------")
+	fmt.Println("")
+	fmt.Println("squish is a CLI image optimizer written in Go utilizing mozjpeg")
+	fmt.Println("")
+	fmt.Println("optimized images are outputted to a folder in the current working directory")
+	fmt.Println("")
+	fmt.Println("For usage, run 'squish --help' or 'squish -h'!")
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -61,7 +69,7 @@ func init() {
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	rootCmd.Flags().BoolP("help", "h", false, "Help message for any command")
 }
 
 // initConfig reads in config file and ENV variables if set.

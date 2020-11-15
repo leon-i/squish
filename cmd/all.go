@@ -91,5 +91,5 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	allCmd.Flags().UintP("quality", "q", 75, "Set image quality - default 75")
+	allCmd.Flags().UintP("quality", "q", 75, "Set output image quality")
 }
