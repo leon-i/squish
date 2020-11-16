@@ -17,10 +17,13 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"io/ioutil"
 	"os"
+	"squish/config"
 	"squish/util"
-	"github.com/spf13/cobra"
+	"time"
 )
 
 // allCmd represents the all command
@@ -34,26 +37,31 @@ var allCmd = &cobra.Command{
 		fmt.Println("--------------------------------------------")
 
 		q, _ := cmd.Flags().GetUint("quality")
-		if q == 0 || !util.IsValidQuality(q) {
-			q = 75
-		}
+		d, _ := cmd.Flags().GetString("destination")
+
+		config.SetValues(q, d)
 
 		util.Startup()
 
 		files, err := ioutil.ReadDir(".")
 		util.Check(err)
 
-		walkFiles(files, q)
+		start := time.Now()
+
+		walkFiles(files)
+
+		duration := time.Since(start).Seconds()
+		fmt.Println(fmt.Sprintf("\nall images squished in %f seconds\n", duration))
 
 		util.Cleanup()
 	},
 }
 
-func walkFiles(files []os.FileInfo, quality uint) {
+func walkFiles(files []os.FileInfo) {
 	for _, file := range files {
 		n := file.Name()
 
-		if n == "squished" {
+		if n == config.SquishConfig.Destination {
 			continue
 		}
 
@@ -76,7 +84,7 @@ func walkFiles(files []os.FileInfo, quality uint) {
 			continue
 		}
 		
-		util.OptimizeImage(f, t, quality)
+		util.OptimizeImage(f, t)
 	}
 }
 
@@ -91,5 +99,6 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	allCmd.Flags().UintP("quality", "q", 75, "Set output image quality")
+	allCmd.Flags().UintP("quality", "q", viper.GetUint("quality"), "Set output image quality")
+	allCmd.Flags().StringP("destination", "d", viper.GetString("destination"), "Set destination/new directory name for outputted images")
 }
