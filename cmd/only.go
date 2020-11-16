@@ -17,7 +17,9 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/viper"
 	"os"
+	"squish/config"
 	"squish/util"
 
 	"github.com/spf13/cobra"
@@ -34,19 +36,19 @@ var onlyCmd = &cobra.Command{
 		fmt.Println("--------------------------------------------------")
 
 		q, _ := cmd.Flags().GetUint("quality")
-		if q == 0 || !util.IsValidQuality(q) {
-			q = 75
-		}
+		d, _ := cmd.Flags().GetString("destination")
+
+		config.SetValues(q, d)
 
 		util.Startup()
 
-		walkArgs(args, q)
+		walkArgs(args)
 
 		util.Cleanup()
 	},
 }
 
-func walkArgs(fileNames []string, quality uint) {
+func walkArgs(fileNames []string) {
 	for _, n := range fileNames {
 		f, err := os.Open(n)
 		util.Check(err)
@@ -62,7 +64,7 @@ func walkArgs(fileNames []string, quality uint) {
 			continue
 		}
 
-		util.OptimizeImage(f, t, quality)
+		util.OptimizeImage(f, t)
 	}
 }
 
@@ -77,5 +79,6 @@ func init() {
 
 	// Cobra supports local flags which will only run when this command
 	// is called directly, e.g.:
-	onlyCmd.Flags().UintP("quality", "q", 75, "Set output image quality")
+	onlyCmd.Flags().UintP("quality", "q", viper.GetUint("quality"), "Set output image quality")
+	onlyCmd.Flags().StringP("destination", "d", viper.GetString("destination"), "Set destination/new directory name for outputted images")
 }

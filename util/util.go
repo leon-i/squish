@@ -3,6 +3,7 @@ package util
 import (
 	"bytes"
 	"fmt"
+	"github.com/nickalie/go-mozjpegbin"
 	"image"
 	"image/jpeg"
 	"image/png"
@@ -11,7 +12,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"github.com/nickalie/go-mozjpegbin"
+	"squish/config"
 )
 
 func GetFileContentType(file *os.File) (string, error) {
@@ -30,7 +31,9 @@ func GetFileContentType(file *os.File) (string, error) {
 	return contentType, nil
 }
 
-func OptimizeImage(file *os.File, imageType string, quality uint) {
+func OptimizeImage(file *os.File, imageType string) {
+	conf := config.SquishConfig
+
 	i, err := ioutil.ReadAll(file)
 	Check(err)
 
@@ -54,12 +57,12 @@ func OptimizeImage(file *os.File, imageType string, quality uint) {
 	out := new(bytes.Buffer)
 
 	err = mozjpegbin.Encode(out, img, &mozjpegbin.Options{
-		Quality: quality,
+		Quality: conf.Quality,
 		Optimize: true,
 	})
 	Check(err)
 
-	path := fmt.Sprintf("squished/%s.jpg", Trim(file.Name()))
+	path := fmt.Sprintf("%s/%s.jpg", conf.Destination, Trim(file.Name()))
 
 	newFile, err := os.Create(path)
 	Check(err)
@@ -76,29 +79,23 @@ func OptimizeImage(file *os.File, imageType string, quality uint) {
 }
 
 func Startup() {
-	if _, err := os.Stat("./squished"); os.IsNotExist(err) {
-		if err := os.Mkdir("squished", 0755); err != nil {
+	d := config.SquishConfig.Destination
+	if _, err := os.Stat("./" + d); os.IsNotExist(err) {
+		if err := os.Mkdir(d, 0755); err != nil {
 			panic(err)
 		}
 	}
 }
 
 func Cleanup() {
-	squished, err := ioutil.ReadDir("./squished")
+	d := config.SquishConfig.Destination
+	squished, err := ioutil.ReadDir("./" + d)
 	Check(err)
 
 	if len(squished) == 0 {
-		err = os.RemoveAll("squished")
+		err = os.RemoveAll(d)
 		Check(err)
 	}
-}
-
-func IsValidQuality(q uint) (valid bool) {
-	if q < 0 || q > 100 {
-		return false
-	}
-
-	return true
 }
 
 func Trim(fileName string) (trimmed string) {

@@ -41,12 +41,9 @@ func welcome() {
 	fmt.Println("------------------")
 	fmt.Println("Welcome to squish!")
 	fmt.Println("------------------")
-	fmt.Println("")
-	fmt.Println("squish is a CLI image optimizer written in Go utilizing mozjpeg")
-	fmt.Println("")
-	fmt.Println("optimized images are outputted to a folder in the current working directory")
-	fmt.Println("")
-	fmt.Println("For usage, run 'squish --help' or 'squish -h'!")
+	fmt.Println("\nsquish is a CLI image optimizer written in Go utilizing mozjpeg")
+	fmt.Println("\noptimized images are outputted to a folder in the current working directory")
+	fmt.Println("\nFor usage, run 'squish --help' or 'squish -h'!")
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
