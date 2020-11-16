@@ -22,6 +22,7 @@ import (
 	"io/ioutil"
 	"os"
 	"squish/config"
+	"squish/optimizer"
 	"squish/util"
 	"time"
 )
@@ -48,16 +49,15 @@ var allCmd = &cobra.Command{
 
 		start := time.Now()
 
-		walkFiles(files)
+		optimizeAll(files)
 
-		duration := time.Since(start).Seconds()
-		fmt.Println(fmt.Sprintf("\nall images squished in %f seconds\n", duration))
+		util.LogDuration(start)
 
 		util.Cleanup()
 	},
 }
 
-func walkFiles(files []os.FileInfo) {
+func optimizeAll(files []os.FileInfo) {
 	for _, file := range files {
 		n := file.Name()
 
@@ -84,7 +84,7 @@ func walkFiles(files []os.FileInfo) {
 			continue
 		}
 		
-		util.OptimizeImage(f, t)
+		optimizer.ToMozillaJpeg(f, t)
 	}
 }
 

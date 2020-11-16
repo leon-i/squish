@@ -17,12 +17,13 @@ package cmd
 
 import (
 	"fmt"
+	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"os"
 	"squish/config"
+	"squish/optimizer"
 	"squish/util"
-
-	"github.com/spf13/cobra"
+	"time"
 )
 
 // onlyCmd represents the only command
@@ -42,13 +43,16 @@ var onlyCmd = &cobra.Command{
 
 		util.Startup()
 
-		walkArgs(args)
+		start := time.Now()
+		optimizeOnly(args)
+
+		util.LogDuration(start)
 
 		util.Cleanup()
 	},
 }
 
-func walkArgs(fileNames []string) {
+func optimizeOnly(fileNames []string) {
 	for _, n := range fileNames {
 		f, err := os.Open(n)
 		util.Check(err)
@@ -64,7 +68,7 @@ func walkArgs(fileNames []string) {
 			continue
 		}
 
-		util.OptimizeImage(f, t)
+		optimizer.ToMozillaJpeg(f, t)
 	}
 }
 
