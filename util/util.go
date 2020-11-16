@@ -1,18 +1,13 @@
 package util
 
 import (
-	"bytes"
 	"fmt"
-	"github.com/nickalie/go-mozjpegbin"
-	"image"
-	"image/jpeg"
-	"image/png"
-	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"path/filepath"
 	"squish/config"
+	"time"
 )
 
 func GetFileContentType(file *os.File) (string, error) {
@@ -26,56 +21,9 @@ func GetFileContentType(file *os.File) (string, error) {
 
 	contentType := http.DetectContentType(buffer)
 
-	resetFile(file)
+	ResetFile(file)
 
 	return contentType, nil
-}
-
-func OptimizeImage(file *os.File, imageType string) {
-	conf := config.SquishConfig
-
-	i, err := ioutil.ReadAll(file)
-	Check(err)
-
-	resetFile(file)
-
-	in := bytes.NewReader(i)
-
-	var img image.Image
-
-	if imageType == "image/jpeg" {
-		img, err = jpeg.Decode(in)
-		Check(err)
-	} else {
-		img, err = png.Decode(in)
-		Check(err)
-	}
-
-	err = file.Close()
-	Check(err)
-
-	out := new(bytes.Buffer)
-
-	err = mozjpegbin.Encode(out, img, &mozjpegbin.Options{
-		Quality: conf.Quality,
-		Optimize: true,
-	})
-	Check(err)
-
-	path := fmt.Sprintf("%s/%s.jpg", conf.Destination, Trim(file.Name()))
-
-	newFile, err := os.Create(path)
-	Check(err)
-
-	saved := (in.Size() - int64(out.Len())) * 100 / in.Size()
-
-	_, err = io.Copy(newFile, out)
-	Check(err)
-
-	err = newFile.Close()
-	Check(err)
-
-	fmt.Println(fmt.Sprintf("%s squished - file size reduced by %d%%", file.Name(), saved))
 }
 
 func Startup() {
@@ -103,10 +51,15 @@ func Trim(fileName string) (trimmed string) {
 	return t
 }
 
-func resetFile(file *os.File) {
+func ResetFile(file *os.File) {
 	if _, err := file.Seek(0, 0); err != nil {
 		panic(err)
 	}
+}
+
+func LogDuration(start time.Time) {
+	duration := time.Since(start).Seconds()
+	fmt.Println(fmt.Sprintf("\nall image(s) squished in %f seconds\n", duration))
 }
 
 func LogError(e error) {
