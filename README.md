@@ -13,7 +13,7 @@ brew instlall go
 brew install mozjpeg
 ```  
   
-If you have go + mozjpeg installed...  
+If you have Go + mozjpeg installed...  
 ```
 git clone https://github.com/leon-i/squish.git  
   
