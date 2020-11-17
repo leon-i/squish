@@ -55,16 +55,18 @@ var onlyCmd = &cobra.Command{
 func optimizeOnly(fileNames []string) {
 	for _, n := range fileNames {
 		f, err := os.Open(n)
-		util.Check(err)
+		if err != nil {
+			panic(err)
+		}
 
 		t, err := util.GetFileContentType(f)
 		if err != nil {
-			util.LogError(err)
+			fmt.Println(fmt.Errorf("ERROR - %v", err))
 			continue
 		}
 
 		if t != "image/jpeg" && t != "image/png" {
-			fmt.Println(fmt.Sprintf("ERROR - %s is not a valid image", n))
+			fmt.Println("ERROR -", n, "is not a valid image")
 			continue
 		}
 

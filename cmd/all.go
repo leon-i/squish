@@ -45,7 +45,9 @@ var allCmd = &cobra.Command{
 		util.Startup()
 
 		files, err := ioutil.ReadDir(".")
-		util.Check(err)
+		if err != nil {
+			panic(err)
+		}
 
 		start := time.Now()
 
@@ -68,19 +70,19 @@ func optimizeAll(files []os.FileInfo) {
 		f, err := os.Open(n)
 
 		if err != nil {
-			util.LogError(err)
+			fmt.Println(fmt.Errorf("ERROR - %v", err))
 			continue
 		}
 
 		t, err := util.GetFileContentType(f)
 
 		if err != nil {
-			util.LogError(err)
+			fmt.Println(fmt.Errorf("ERROR - %v", err))
 			continue
 		}
 
 		if t != "image/jpeg" && t != "image/png" {
-			fmt.Println(fmt.Sprintf("ERROR - %s is not a valid image", n))
+			fmt.Println("ERROR -", n, "is not a valid image")
 			continue
 		}
 		

@@ -18,7 +18,9 @@ func ToMozillaJpeg(file *os.File, imageType string) {
 	conf := config.SquishConfig
 
 	i, err := ioutil.ReadAll(file)
-	util.Check(err)
+	if err != nil {
+		panic(err)
+	}
 
 	util.ResetFile(file)
 
@@ -28,35 +30,45 @@ func ToMozillaJpeg(file *os.File, imageType string) {
 
 	if imageType == "image/jpeg" {
 		img, err = jpeg.Decode(in)
-		util.Check(err)
+		if err != nil {
+			panic(fmt.Errorf("ERROR - cannot decode image - %v", err))
+		}
 	} else {
 		img, err = png.Decode(in)
-		util.Check(err)
+		if err != nil {
+			panic(fmt.Errorf("ERROR - cannot decode image - %v", err))
+		}
 	}
 
-	err = file.Close()
-	util.Check(err)
+	if err := file.Close(); err != nil {
+		panic(err)
+	}
 
 	out := new(bytes.Buffer)
 
-	err = mozjpegbin.Encode(out, img, &mozjpegbin.Options{
+	if err := mozjpegbin.Encode(out, img, &mozjpegbin.Options{
 		Quality: conf.Quality,
 		Optimize: true,
-	})
-	util.Check(err)
+	}); err != nil {
+		panic(fmt.Errorf("ERROR - cannot encode image, check mozjpeg config - %v", err))
+	}
 
 	path := fmt.Sprintf("%s/%s.jpg", conf.Destination, util.Trim(file.Name()))
 
 	newFile, err := os.Create(path)
-	util.Check(err)
+	if err != nil {
+		panic(err)
+	}
 
 	saved := (in.Size() - int64(out.Len())) * 100 / in.Size()
 
-	_, err = io.Copy(newFile, out)
-	util.Check(err)
+	if _, err = io.Copy(newFile, out); err != nil {
+		panic(err)
+	}
 
-	err = newFile.Close()
-	util.Check(err)
+	if err := newFile.Close(); err != nil {
+		panic(err)
+	}
 
 	fmt.Println(fmt.Sprintf("%s squished - file size reduced by %d%%", file.Name(), saved))
 }
