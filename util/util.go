@@ -11,7 +11,6 @@ import (
 )
 
 func GetFileContentType(file *os.File) (string, error) {
-	// only the first 512 bytes are used to sniff the content type.
 	buffer := make([]byte, 512)
 
 	_, err := file.Read(buffer)

@@ -23,7 +23,7 @@ func SetValues(quality uint, destination string) {
 	} else {
 		SquishConfig.Destination = destination
 	}
-	
+
 	fmt.Println("\nimage quality set to", SquishConfig.Quality)
 	fmt.Println("\nimage(s) will be output to ./" + SquishConfig.Destination)
 	fmt.Println("")
