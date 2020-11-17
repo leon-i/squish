@@ -11,7 +11,6 @@ import (
 )
 
 func GetFileContentType(file *os.File) (string, error) {
-	// only the first 512 bytes are used to sniff the content type.
 	buffer := make([]byte, 512)
 
 	_, err := file.Read(buffer)
@@ -38,11 +37,14 @@ func Startup() {
 func Cleanup() {
 	d := config.SquishConfig.Destination
 	squished, err := ioutil.ReadDir("./" + d)
-	Check(err)
+	if err != nil {
+		panic(err)
+	}
 
 	if len(squished) == 0 {
-		err = os.RemoveAll(d)
-		Check(err)
+		if err := os.RemoveAll(d); err != nil {
+			panic(err)
+		}
 	}
 }
 
@@ -60,14 +62,4 @@ func ResetFile(file *os.File) {
 func LogDuration(start time.Time) {
 	duration := time.Since(start).Seconds()
 	fmt.Println(fmt.Sprintf("\nall image(s) squished in %f seconds\n", duration))
-}
-
-func LogError(e error) {
-	fmt.Println("ERROR - " + e.Error())
-}
-
-func Check(e error) {
-	if e != nil {
-		panic(e)
-	}
 }
